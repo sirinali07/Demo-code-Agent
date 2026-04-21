@@ -25,6 +25,15 @@ describe('JWT authentication', () => {
     expect(response.body).toEqual({ message: 'Invalid credentials' });
   });
 
+  test('POST /login rejects invalid credentials with different length', async () => {
+    const response = await request(app)
+      .post('/login')
+      .send({ username: 'admin', password: 'bad' });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ message: 'Invalid credentials' });
+  });
+
   test('GET /protected rejects requests without token', async () => {
     const response = await request(app).get('/protected');
 
