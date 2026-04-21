@@ -13,14 +13,21 @@ if (!JWT_SECRET || !AUTH_USERNAME || !AUTH_PASSWORD) {
   throw new Error('JWT_SECRET, AUTH_USERNAME, and AUTH_PASSWORD environment variables are required');
 }
 
-const authLimiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false
 });
 
-app.post('/login', authLimiter, (req, res) => {
+const protectedLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.post('/login', loginLimiter, (req, res) => {
   const { username, password } = req.body || {};
 
   if (username !== AUTH_USERNAME || password !== AUTH_PASSWORD) {
@@ -51,7 +58,7 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-app.get('/protected', authLimiter, authenticateToken, (req, res) => {
+app.get('/protected', protectedLimiter, authenticateToken, (req, res) => {
   res.json({ message: `Protected route accessed by ${req.user.username}` });
 });
 
