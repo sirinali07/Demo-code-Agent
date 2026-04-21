@@ -1,5 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const app = express();
 
@@ -30,7 +31,14 @@ const protectedLimiter = rateLimit({
 app.post('/login', loginLimiter, (req, res) => {
   const { username, password } = req.body || {};
 
-  if (username !== AUTH_USERNAME || password !== AUTH_PASSWORD) {
+  if (typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const usernameMatches = safeEqual(username, AUTH_USERNAME);
+  const passwordMatches = safeEqual(password, AUTH_PASSWORD);
+
+  if (!usernameMatches || !passwordMatches) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
@@ -64,6 +72,17 @@ app.get('/protected', protectedLimiter, authenticateToken, (req, res) => {
 
 if (require.main === module) {
   app.listen(3000, () => console.log('Server running'));
+}
+
+function safeEqual(left, right) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
 module.exports = app;

@@ -2,7 +2,7 @@ const request = require('supertest');
 
 process.env.JWT_SECRET = 'test-secret';
 process.env.AUTH_USERNAME = 'admin';
-process.env.AUTH_PASSWORD = 'password123';
+process.env.AUTH_PASSWORD = 'T3st-Pass#927!';
 
 const app = require('./app');
 
@@ -10,7 +10,7 @@ describe('JWT authentication', () => {
   test('POST /login returns token with valid credentials', async () => {
     const response = await request(app)
       .post('/login')
-      .send({ username: 'admin', password: 'password123' });
+      .send({ username: 'admin', password: 'T3st-Pass#927!' });
 
     expect(response.status).toBe(200);
     expect(response.body.token).toBeDefined();
@@ -35,7 +35,7 @@ describe('JWT authentication', () => {
   test('GET /protected allows requests with valid token', async () => {
     const login = await request(app)
       .post('/login')
-      .send({ username: 'admin', password: 'password123' });
+      .send({ username: 'admin', password: 'T3st-Pass#927!' });
 
     const response = await request(app)
       .get('/protected')
