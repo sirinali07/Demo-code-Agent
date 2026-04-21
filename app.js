@@ -1,15 +1,29 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const app = express();
 
 app.use(express.json());
 
-const JWT_SECRET = process.env.JWT_SECRET || 'replace-with-secure-secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+const AUTH_USERNAME = process.env.AUTH_USERNAME;
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 
-app.post('/login', (req, res) => {
+if (!JWT_SECRET || !AUTH_USERNAME || !AUTH_PASSWORD) {
+  throw new Error('JWT_SECRET, AUTH_USERNAME, and AUTH_PASSWORD environment variables are required');
+}
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.post('/login', authLimiter, (req, res) => {
   const { username, password } = req.body || {};
 
-  if (username !== 'admin' || password !== 'password123') {
+  if (username !== AUTH_USERNAME || password !== AUTH_PASSWORD) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
@@ -37,7 +51,7 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-app.get('/protected', authenticateToken, (req, res) => {
+app.get('/protected', authLimiter, authenticateToken, (req, res) => {
   res.json({ message: `Protected route accessed by ${req.user.username}` });
 });
 

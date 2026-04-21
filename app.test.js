@@ -1,4 +1,9 @@
 const request = require('supertest');
+
+process.env.JWT_SECRET = 'test-secret';
+process.env.AUTH_USERNAME = 'admin';
+process.env.AUTH_PASSWORD = 'password123';
+
 const app = require('./app');
 
 describe('JWT authentication', () => {
